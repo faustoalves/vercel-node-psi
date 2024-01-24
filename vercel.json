@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/psi/**/*.js": {
+      "maxDuration": 300
+    }
+  }
+}
