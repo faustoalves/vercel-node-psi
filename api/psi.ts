@@ -2,18 +2,27 @@ import type {VercelRequest, VercelResponse} from "@vercel/node";
 const psi = require("psi");
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  let {url, strategy} = req.query;
-  console.log(url, strategy);
-  const {data} = await psi(url, {
+  let {url} = req.query;
+  const mobile = await psi(url, {
     nokey: "true",
-    strategy: strategy,
+    strategy: "mobile",
   });
+  const desktop = await psi(url, {
+    nokey: "true",
+    strategy: "desktop",
+  });
+
   await sendMessageToSlack(
     url,
-    `Strategy: ${strategy}, Performance: ${data.lighthouseResult.categories.performance.score}`
+    `Performance: mobile:${mobile.data.lighthouseResult.categories.performance.score * 100} / desktop:${
+      desktop.data.lighthouseResult.categories.performance.score * 100
+    }`
   );
   return res.json({
-    performance: data.lighthouseResult.categories.performance.score,
+    performance: {
+      mobile: mobile.data.lighthouseResult.categories.performance.score * 100,
+      desktop: desktop.data.lighthouseResult.categories.performance.score * 100,
+    },
   });
 }
 
@@ -31,5 +40,4 @@ const sendMessageToSlack = async (_url, message) => {
       "Content-Type": "application/json",
     },
   });
-  console.log(response);
 };
